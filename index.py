@@ -1,3 +1,4 @@
+
 from rich import console
 import os
 import sys
@@ -141,7 +142,7 @@ c.print("""Le saissisement de cases et de tableau se fait en appuyant sur une to
       """)
 
 def game():
-    with connect("ws://localhost:8000") as ws:
+    with connect("ws://144.22.210.80:8000") as ws:
         c.print("Voulez vous créer une partie ou en rejoindre une?")
         c.print("[1] Créer")
         c.print("[2] Rejoindre")
@@ -187,11 +188,13 @@ def receive_move(ws: Connection):
     global tableau
     c.print("En attente du jet de l'adversaire...")
     msg = str(ws.recv())
-    c.print(msg)
-    if msg == "quit":
+    if msg == "quit" or msg == "disconnected":
         c.print("L'adversaire a quitté la partie.")
         sys.exit()
-        raise Exception()
+    elif msg.startswith("victory"):
+        player = msg.split(",")[1]
+        c.print(f"Joueur {player} a gagne!!!")
+        sys.exit()
     else:
         spl = msg.split(sep=',', maxsplit=-1) # type: ignore
         return list(map(int, spl))
@@ -238,7 +241,7 @@ def main_loop(ws: Connection, player: int = 1):
             else:
                 jeu[tableau[0] * 3 + case[0]][tableau[1] * 3+ case[1]] = joueur
                 resetJeu = 0
-                if jeuGagne(tableau) != None: resetJeu = 1
+                if jeuGagne(case) != None: resetJeu = 1
                 clear_screen()
                 printJeu()
                 ws.send(f"{tableau[0] * 3 + case[0]},{tableau[1] * 3 + case[1]},{joueur},{resetJeu}")
@@ -250,6 +253,7 @@ def main_loop(ws: Connection, player: int = 1):
             victorious = victoire()
             if victorious != None:
                 c.print(f"Joueur {victorious} a gagne!!!")
+            ws.send(f"victory,{victorious}")
         else:
             tableau = case
 
