@@ -253,7 +253,7 @@ def main_loop(ws: Connection, player: int = 1):
             victorious = victoire()
             if victorious != None:
                 c.print(f"Joueur {victorious} a gagne!!!")
-            ws.send(f"victory,{victorious}")
+                ws.send(f"victory,{victorious}")
         else:
             tableau = case
 
